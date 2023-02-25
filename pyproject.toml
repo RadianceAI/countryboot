@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "countryboot"
+version = "0.1.0"
+description = ""
+authors = ["Ivan Hryhoryeu <ivan.grigoryev502@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "~3.11"
+pygithub = "^1.58.0"
+jupyter = "^1.0.0"
+pandas = "^1.5.3"
+jupyterlab = "^3.6.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
