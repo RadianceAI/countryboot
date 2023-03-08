@@ -21,6 +21,8 @@ if not GITHUB_TOKEN:
         'Github token is not specified, \
         please make sure to include it in GITHUB_TOKEN variable in .env file'
     )
+GITHUB_QUERY = 'stars:>=100000'
+
 
 if __name__ == '__main__':
 
@@ -31,7 +33,7 @@ if __name__ == '__main__':
 
     meta = Meta()
 
-    repos = g.search_repositories('stars:30000..40000')
+    repos = g.search_repositories(GITHUB_QUERY)
     for repo in tqdm(repos, total=repos.totalCount):
 
         # get repo meta
@@ -72,11 +74,14 @@ if __name__ == '__main__':
             rate_limit = g.get_rate_limit().core
             logger.info(f'Rate Limit Reset at {rate_limit.reset}')
             break
+
         except Exception as e:
             logger.error(e)
+
         except KeyboardInterrupt:
             logger.info('Interrupted by user.')
             break
+
         finally:
             # after all repo info has been parsed, save info to a file
             with open(repo_meta.file, 'w') as f:
