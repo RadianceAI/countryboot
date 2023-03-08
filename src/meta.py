@@ -61,13 +61,13 @@ class Meta:
             return self.info[repo_id]
         except KeyError:
             return RepoMeta(
-            github_id=repo_id,
-            file=f'data/{repo_id}.json',
-            completed=False,
-            last_update=datetime.now(),
-            contributors=ContributorMetaCollection(),
-            contributors_count=0
-        )
+                github_id=repo_id,
+                file=f'data/{repo_id}.json',
+                completed=False,
+                last_update=datetime.now(),
+                contributors=ContributorMetaCollection(),
+                contributors_count=0
+            )
 
     def check_repo_completion(self, repo_id: int) -> bool:
         repo = self.info[repo_id]

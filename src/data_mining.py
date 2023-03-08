@@ -1,6 +1,3 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 import os
 import json
 import logging
@@ -8,9 +5,12 @@ from datetime import datetime
 
 from github import Github, GithubException
 from tqdm import tqdm
+from dotenv import load_dotenv
 
 from meta import Meta
 from parse import parse_contributor, parse_repo
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -50,7 +50,9 @@ if __name__ == '__main__':
 
             contributors = repo.get_contributors()
             repo_meta.contributors_count = contributors.totalCount
-            for contributor in tqdm(contributors, total=contributors.totalCount):
+            for contributor in tqdm(
+                contributors, total=contributors.totalCount
+            ):
 
                 # get contributor meta
                 contributor_meta = repo_meta.contributors[contributor.id]
@@ -60,13 +62,16 @@ if __name__ == '__main__':
                     continue
 
                 # parse contributor info
-                repo_info['contributors'].append(parse_contributor(repo, contributor))
+                repo_info['contributors'].append(
+                    parse_contributor(repo, contributor)
+                )
 
                 # set contributor meta as collected
                 contributor_meta.collected = True
 
                 # update contributor meta in repo meta
-                repo_meta.contributors[contributor_meta.github_id] = contributor_meta
+                repo_meta.contributors[contributor_meta.github_id] = \
+                    contributor_meta
                 repo_meta.last_update = datetime.now()
 
         except GithubException as e:
