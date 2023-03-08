@@ -5,6 +5,7 @@ import pickle
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Iterator
 
 
 @dataclass
@@ -28,7 +29,7 @@ class ContributorMetaCollection:
     ) -> None:
         self._contributors[contriburor_id] = contributor
 
-    def __iter__(self) -> list[ContributorMeta]:
+    def __iter__(self) -> Iterator[ContributorMeta]:
         return iter(self._contributors.values())
 
 

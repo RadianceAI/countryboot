@@ -9,6 +9,7 @@ from github import Github, GithubException
 from tqdm import tqdm
 
 from meta import Meta
+from parse import parse_contributor, parse_repo
 
 
 if __name__ == '__main__':
@@ -30,15 +31,9 @@ if __name__ == '__main__':
         try:
 
             # parse repo info
-            repo_info = {}
-            repo_info['id'] = repo.id
-            repo_info['url'] = repo.url
-            repo_info['name'] = repo.name
-            repo_info['owner'] = repo.owner.login
-            repo_info['stars'] = repo.stargazers_count
-            repo_info['commits'] = []
-            contributors = repo.get_contributors()
+            repo_info = parse_repo(repo)
 
+            contributors = repo.get_contributors()
             for contributor in tqdm(contributors, total=contributors.totalCount):
 
                 # get contributor meta
@@ -49,12 +44,7 @@ if __name__ == '__main__':
                     continue
 
                 # parse contributor info
-                repo_info['commits'].append({
-                    'author_id': contributor.id,
-                    'author_url': contributor.url,
-                    'author_location': contributor.location,
-                    'total_commits': repo.get_commits(author=contributor).totalCount
-                })
+                repo_info['commits'].append(parse_contributor(repo, contributor))
 
                 # set contributor meta as collected
                 contributor_meta.collected = True
