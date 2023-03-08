@@ -32,6 +32,9 @@ class ContributorMetaCollection:
     def __iter__(self) -> Iterator[ContributorMeta]:
         return iter(self._contributors.values())
 
+    def __len__(self) -> int:
+        return len(self._contributors.values())
+
 
 @dataclass
 class RepoMeta:
@@ -40,6 +43,7 @@ class RepoMeta:
     completed: bool
     last_update: datetime
     contributors: ContributorMetaCollection
+    contributors_count: int
 
 
 class Meta:
@@ -61,13 +65,16 @@ class Meta:
             file=f'data/{repo_id}.json',
             completed=False,
             last_update=datetime.now(),
-            contributors=ContributorMetaCollection()
+            contributors=ContributorMetaCollection(),
+            contributors_count=0
         )
 
     def check_repo_completion(self, repo_id: int) -> bool:
-        completed = all(
+        repo = self.info[repo_id]
+        completed = (len(repo.contributors) == repo.contributors_count
+        ) and all(
             contributor.collected
-            for contributor in self.info[repo_id].contributors
+            for contributor in repo.contributors
         )
         self.info[repo_id].completed = completed
         return completed

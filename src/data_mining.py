@@ -11,10 +11,17 @@ from tqdm import tqdm
 from meta import Meta
 from parse import parse_contributor, parse_repo
 
+GITHUB_TIMEOUT = 45
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
+if not GITHUB_TOKEN:
+    raise RuntimeError(
+        'Github token is not specified, \
+        please make sure to include it in GITHUB_TOKEN variable in .env file'
+    )
 
 if __name__ == '__main__':
 
-    g = Github(os.environ['GITHUB_TOKEN'], timeout=45)
+    g = Github(GITHUB_TOKEN, timeout=GITHUB_TIMEOUT)
 
     meta = Meta()
 
@@ -34,6 +41,7 @@ if __name__ == '__main__':
             repo_info = parse_repo(repo)
 
             contributors = repo.get_contributors()
+            repo_meta.contributors_count = contributors.totalCount
             for contributor in tqdm(contributors, total=contributors.totalCount):
 
                 # get contributor meta
@@ -44,7 +52,7 @@ if __name__ == '__main__':
                     continue
 
                 # parse contributor info
-                repo_info['commits'].append(parse_contributor(repo, contributor))
+                repo_info['contributors'].append(parse_contributor(repo, contributor))
 
                 # set contributor meta as collected
                 contributor_meta.collected = True
@@ -62,6 +70,7 @@ if __name__ == '__main__':
             print(e)
         except KeyboardInterrupt:
             print('Interrupted by user.')
+            break
         finally:
             # after all repo info has been parsed, save info to a file
             with open(repo_meta.file, 'w') as f:

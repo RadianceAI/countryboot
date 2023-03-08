@@ -9,7 +9,7 @@ def parse_repo(repo: Repository) -> dict:
         'name': repo.name,
         'owner': repo.owner.login,
         'stars': repo.stargazers_count,
-        'commits': []
+        'contributors': []
     }
 
 
