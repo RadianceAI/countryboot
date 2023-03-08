@@ -7,9 +7,8 @@ from datetime import datetime
 
 from github import Github, GithubException
 from tqdm import tqdm
-import pandas as pd
 
-from meta import Meta, RepoMeta, ContributorMeta
+from meta import Meta
 
 
 if __name__ == '__main__':
@@ -18,17 +17,11 @@ if __name__ == '__main__':
 
     meta = Meta()
 
-    repos = g.search_repositories('stars:>=100000')
+    repos = g.search_repositories('stars:30000..40000')
     for repo in tqdm(repos, total=repos.totalCount):
 
-        # get repo meta or create new
-        repo_meta = meta.get(repo.id, RepoMeta(
-            github_id=repo.id,
-            file=f'data/{repo.id}.json',
-            completed=False,
-            last_update=datetime.now(),
-            contributors={}
-        ))
+        # get repo meta
+        repo_meta = meta[repo.id]
 
         # skip repo if it is already parsed
         if repo_meta.completed:
@@ -48,11 +41,8 @@ if __name__ == '__main__':
 
             for contributor in tqdm(contributors, total=contributors.totalCount):
 
-                # get contributor meta or create new
-                contributor_meta = repo_meta.contributors.get(
-                    contributor.id,
-                    ContributorMeta(github_id=contributor.id, collected=False)
-                )
+                # get contributor meta
+                contributor_meta = repo_meta.contributors[contributor.id]
 
                 # skip if contributor already parsed
                 if contributor_meta.collected:
@@ -73,16 +63,23 @@ if __name__ == '__main__':
                 repo_meta.contributors[contributor_meta.github_id] = contributor_meta
                 repo_meta.last_update = datetime.now()
 
+        except GithubException as e:
+            print(e)
+            rate_limit = g.get_rate_limit().core
+            print(f'Rate Limit Reset at {rate_limit.reset}')
+            break
+        except Exception as e:
+            print(e)
+        except KeyboardInterrupt:
+            print('Interrupted by user.')
+        finally:
             # after all repo info has been parsed, save info to a file
             with open(repo_meta.file, 'w') as f:
                 json.dump(repo_info, f)
 
             # update repo meta and save
             meta.info[repo.id] = repo_meta
-            meta.check_repo_completion(repo.id)
+            completed = meta.check_repo_completion(repo.id)
+            if completed:
+                print(f'Parsed all info for {repo_info["url"]} repo')
             meta.save()
-
-        except GithubException as e:
-            pass
-        except Exception as e:
-            print(e)
