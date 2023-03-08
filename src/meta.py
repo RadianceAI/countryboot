@@ -71,7 +71,8 @@ class Meta:
 
     def check_repo_completion(self, repo_id: int) -> bool:
         repo = self.info[repo_id]
-        completed = (len(repo.contributors) == repo.contributors_count
+        completed = (
+            len(repo.contributors) == repo.contributors_count
         ) and all(
             contributor.collected
             for contributor in repo.contributors

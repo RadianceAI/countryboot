@@ -3,6 +3,7 @@ load_dotenv()
 
 import os
 import json
+import logging
 from datetime import datetime
 
 from github import Github, GithubException
@@ -10,6 +11,8 @@ from tqdm import tqdm
 
 from meta import Meta
 from parse import parse_contributor, parse_repo
+
+logging.basicConfig(level=logging.INFO)
 
 GITHUB_TIMEOUT = 45
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
@@ -20,6 +23,9 @@ if not GITHUB_TOKEN:
     )
 
 if __name__ == '__main__':
+
+    logger = logging.getLogger('data_mining')
+    logger.setLevel(logging.INFO)
 
     g = Github(GITHUB_TOKEN, timeout=GITHUB_TIMEOUT)
 
@@ -62,14 +68,14 @@ if __name__ == '__main__':
                 repo_meta.last_update = datetime.now()
 
         except GithubException as e:
-            print(e)
+            logger.error(e)
             rate_limit = g.get_rate_limit().core
-            print(f'Rate Limit Reset at {rate_limit.reset}')
+            logger.info(f'Rate Limit Reset at {rate_limit.reset}')
             break
         except Exception as e:
-            print(e)
+            logger.error(e)
         except KeyboardInterrupt:
-            print('Interrupted by user.')
+            logger.info('Interrupted by user.')
             break
         finally:
             # after all repo info has been parsed, save info to a file
@@ -80,5 +86,5 @@ if __name__ == '__main__':
             meta.info[repo.id] = repo_meta
             completed = meta.check_repo_completion(repo.id)
             if completed:
-                print(f'Parsed all info for {repo_info["url"]} repo')
+                logger.info(f'Parsed all info for {repo_info["url"]} repo')
             meta.save()
