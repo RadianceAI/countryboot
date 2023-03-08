@@ -18,4 +18,4 @@ Data is being collected through Github API, so you'll need to have [Github Token
 You need to make copy of `.env.example` file and call it just `.env` and place your token there.
 By default script collects info about repos that have >= 100k stars on Github.
 If you want to change that, change `GITHUB_QUERY` variable on top of `src/data_mining.py` (sorry, will probably fix this soon).
-To run data mining run `./run_data_mining.sh` script in project root.
+To run data mining run `poetry run sh ./run_data_mining.sh` script in project root.

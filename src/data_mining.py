@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from github import Github, GithubException
 from tqdm import tqdm
@@ -76,8 +77,10 @@ if __name__ == '__main__':
 
         except GithubException as e:
             logger.error(e)
-            rate_limit = g.get_rate_limit().core
-            logger.info(f'Rate Limit Reset at {rate_limit.reset}')
+            reset = g.get_rate_limit().core.reset
+            reset = reset.replace(tzinfo=ZoneInfo('UTC'))
+            reset = reset.astimezone(ZoneInfo('localtime'))
+            logger.info(f'Rate Limit Reset at {reset}')
             break
 
         except Exception as e:
