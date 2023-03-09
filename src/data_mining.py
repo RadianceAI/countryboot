@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import argparse
 
 from github import Github, GithubException
 from tqdm import tqdm
@@ -14,6 +15,13 @@ from parse import parse_contributor, parse_repo
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument(
+    '-f', '--force',
+    help='Forces data retrieval ignoring meta',
+    action='store_true'
+)
+args = arg_parser.parse_args()
 
 GITHUB_TIMEOUT = 45
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
@@ -23,6 +31,7 @@ if not GITHUB_TOKEN:
         please make sure to include it in GITHUB_TOKEN variable in .env file'
     )
 GITHUB_QUERY = 'stars:>=100000'
+FORCE_FLAG = args.force
 
 
 if __name__ == '__main__':
@@ -41,7 +50,7 @@ if __name__ == '__main__':
         repo_meta = meta[repo.id]
 
         # skip repo if it is already parsed
-        if repo_meta.completed:
+        if repo_meta.completed and not FORCE_FLAG:
             continue
 
         try:
@@ -59,7 +68,7 @@ if __name__ == '__main__':
                 contributor_meta = repo_meta.contributors[contributor.id]
 
                 # skip if contributor already parsed
-                if contributor_meta.collected:
+                if contributor_meta.collected and not FORCE_FLAG:
                     continue
 
                 # parse contributor info
