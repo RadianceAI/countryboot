@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from datetime import datetime
+import time
 from zoneinfo import ZoneInfo
 import argparse
 
@@ -21,6 +22,11 @@ arg_parser.add_argument(
     help='Forces data retrieval ignoring meta',
     action='store_true'
 )
+arg_parser.add_argument(
+    '-w', '--wait-reset',
+    help='When rate limit reached sleep until reset, not exit',
+    action='store_true'
+)
 args = arg_parser.parse_args()
 
 GITHUB_TIMEOUT = 45
@@ -32,6 +38,7 @@ if not GITHUB_TOKEN:
     )
 GITHUB_QUERY = 'stars:>=100000'
 FORCE_FLAG = args.force
+WAIT_FLAG = args.wait_reset
 
 
 if __name__ == '__main__':
@@ -90,7 +97,10 @@ if __name__ == '__main__':
             reset = reset.replace(tzinfo=ZoneInfo('UTC'))
             reset = reset.astimezone(ZoneInfo('localtime'))
             logger.info(f'Rate Limit Reset at {reset}')
-            break
+            if WAIT_FLAG:
+                time.sleep(datetime.timestamp(reset) - time.time())
+            else:
+                break
 
         except Exception as e:
             logger.error(e)
