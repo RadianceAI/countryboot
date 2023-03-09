@@ -27,6 +27,12 @@ arg_parser.add_argument(
     help='When rate limit reached sleep until reset, not exit',
     action='store_true'
 )
+arg_parser.add_argument(
+    '-q', '--query',
+    help='Query for Github repositories search',
+    type=str,
+    default='stars:>=100000'
+)
 args = arg_parser.parse_args()
 
 GITHUB_TIMEOUT = 45
@@ -36,7 +42,7 @@ if not GITHUB_TOKEN:
         'Github token is not specified, \
         please make sure to include it in GITHUB_TOKEN variable in .env file'
     )
-GITHUB_QUERY = 'stars:>=100000'
+GITHUB_QUERY = args.query
 FORCE_FLAG = args.force
 WAIT_FLAG = args.wait_reset
 
@@ -60,47 +66,50 @@ if __name__ == '__main__':
         if repo_meta.completed and not FORCE_FLAG:
             continue
 
+        # Double level try-catch to catch KeyboardInterrupt
+        # while waiting for rate limit reset
         try:
+            try:
 
-            # parse repo info
-            repo_info = parse_repo(repo)
+                # parse repo info
+                repo_info = parse_repo(repo)
 
-            contributors = repo.get_contributors()
-            repo_meta.contributors_count = contributors.totalCount
-            for contributor in tqdm(
-                contributors, total=contributors.totalCount
-            ):
+                contributors = repo.get_contributors()
+                repo_meta.contributors_count = contributors.totalCount
+                for contributor in tqdm(
+                    contributors, total=contributors.totalCount
+                ):
 
-                # get contributor meta
-                contributor_meta = repo_meta.contributors[contributor.id]
+                    # get contributor meta
+                    contributor_meta = repo_meta.contributors[contributor.id]
 
-                # skip if contributor already parsed
-                if contributor_meta.collected and not FORCE_FLAG:
-                    continue
+                    # skip if contributor already parsed
+                    if contributor_meta.collected and not FORCE_FLAG:
+                        continue
 
-                # parse contributor info
-                repo_info['contributors'].append(
-                    parse_contributor(repo, contributor)
-                )
+                    # parse contributor info
+                    repo_info['contributors'].append(
+                        parse_contributor(repo, contributor)
+                    )
 
-                # set contributor meta as collected
-                contributor_meta.collected = True
+                    # set contributor meta as collected
+                    contributor_meta.collected = True
 
-                # update contributor meta in repo meta
-                repo_meta.contributors[contributor_meta.github_id] = \
-                    contributor_meta
-                repo_meta.last_update = datetime.now()
+                    # update contributor meta in repo meta
+                    repo_meta.contributors[contributor_meta.github_id] = \
+                        contributor_meta
+                    repo_meta.last_update = datetime.now()
 
-        except GithubException as e:
-            logger.error(e)
-            reset = g.get_rate_limit().core.reset
-            reset = reset.replace(tzinfo=ZoneInfo('UTC'))
-            reset = reset.astimezone(ZoneInfo('localtime'))
-            logger.info(f'Rate Limit Reset at {reset}')
-            if WAIT_FLAG:
-                time.sleep(datetime.timestamp(reset) - time.time())
-            else:
-                break
+            except GithubException as e:
+                logger.error(e)
+                reset = g.get_rate_limit().core.reset
+                reset = reset.replace(tzinfo=ZoneInfo('UTC'))
+                reset = reset.astimezone(ZoneInfo('localtime'))
+                logger.info(f'Rate Limit Reset at {reset}')
+                if WAIT_FLAG:
+                    time.sleep(datetime.timestamp(reset) - time.time())
+                else:
+                    break
 
         except Exception as e:
             logger.error(e)
