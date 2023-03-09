@@ -17,5 +17,12 @@ and does not make any special sense.
 Data is being collected through Github API, so you'll need to have [Github Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 You need to make copy of `.env.example` file and call it just `.env` and place your token there.
 By default script collects info about repos that have >= 100k stars on Github.
-If you want to change that, change `GITHUB_QUERY` variable on top of `src/data_mining.py` (sorry, will probably fix this soon).
+If you want to change that, take a look at `--query` argument.
 To run data mining run `sh ./run_data_mining.sh` script in project root.
+
+### CLI args
+|Arg|Default value|Description|
+|-|-|-|
+|-f, --force|false|Forces data retrieval ignoring meta|
+|-w, --wait-reset|false|Sleeps until rate limit reset, does not exit|
+|-q, --query|"stars:>=100000"|Query for Github repositories search|
