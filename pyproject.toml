@@ -11,7 +11,14 @@ pygithub = "^1.58.0"
 jupyter = "^1.0.0"
 pandas = "^1.5.3"
 jupyterlab = "^3.6.1"
+python-dotenv = "^1.0.0"
+tqdm = "^4.64.1"
 
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.1.1"
+tqdm-stubs = "^0.2.1"
+flake8 = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
